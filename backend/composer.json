@@ -1,0 +1,23 @@
+{
+    "name": "istarie/backend",
+    "autoload": {
+        "psr-4": {
+            "Portfolio\\Src\\": "src/",
+            "Portfolio\\Config\\": "config/",
+            "Portfolio\\Infra\\": "infra/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Istarie",
+            "email": "zIstarie@proton.me"
+        }
+    ],
+    "require": {
+        "doctrine/orm": "^2.14",
+        "doctrine/dbal": "^3.6",
+        "symfony/yaml": "^6.2",
+        "symfony/cache": "^6.2",
+        "vlucas/phpdotenv": "^5.5"
+    }
+}
