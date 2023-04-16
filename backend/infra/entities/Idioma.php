@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
-use Portfolio\Infra\Utils\StatusIdioma;
+use Portfolio\Infra\Types\StatusIdioma;
 use Portfolio\Infra\Entities\Empregado;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping\GeneratedValue;
@@ -22,16 +22,16 @@ class Idioma
     #[GeneratedValue()]
     private int $id;
 
-    #[Column(type: Types::STRING, length: 70)]
+    #[Column(type: Types::STRING, length: 70, unique: true)]
     private string $nome;
 
-    #[Column(enumType: StatusIdioma::class)]
-    private string $status;
+    #[Column(type: Types::STRING)]
+    private StatusIdioma $status;
 
     #[Column(type: Types::TEXT, nullable: true)]
     #[ManyToOne(targetEntity: Empregado::class, inversedBy: 'idiomas')]
     #[JoinColumn(name: 'empregados_token', referencedColumnName: 'token')]
-    private Empregado|null $empregadosToken;
+    private ?Empregado $empregadosToken = null;
 }
 
 ?>

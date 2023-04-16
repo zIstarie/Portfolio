@@ -7,9 +7,9 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
 use Portfolio\Config\Dotenv;
 
-const ENV = Dotenv::config();
+define('ENV', Dotenv::config());
 
-$paths = ['./entities'];
+$paths = [__DIR__ . '/entities'];
 $dbParams = [
     'driver' => ENV['DB_DRIVER'],
     'user' => ENV['DB_USER'],

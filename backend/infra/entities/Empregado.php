@@ -39,17 +39,32 @@ class Empregado
         nullable: true,
         unique: true
     )]
-    private array|null $contatos = null;
+    private ?array $contatos = null;
 
     #[Column(type: Types::TEXT, nullable: true)]
-    private string|null $descricao = null;
+    private ?string $descricao = null;
 
     #[OneToMany(targetEntity: Idioma::class, mappedBy: 'empregados_token')]
-    private Collection $idiomas;
+    private Collection|null $idiomas;
+    
+    #[OneToMany(targetEntity: ExperienciaProfissional::class, mappedBy: 'empregados_token', cascade: ['persist', 'remove'])]
+    private Collection|null $experienciasProfissionais;
+
+    #[OneToMany(targetEntity: CarreiraAcademica::class, mappedBy: 'empregados_token', cascade: ['persist', 'remove'])]
+    private Collection|null $carreirasAcademicas;
+
+    #[OneToMany(targetEntity: Tecnologia::class, mappedBy: 'empregados_token')]
+    private Collection|null $tecnologias;
+
+    #[OneToMany(targetEntity: Projeto::class, mappedBy: 'empregados_token', cascade: ['persist', 'remove'])]
+    private Collection|null $projetos;
 
     public function __construct()
     {
         $this->idiomas = new ArrayCollection();
+        $this->experienciasProfissionais = new ArrayCollection();
+        $this->tecnologias = new ArrayCollection();
+        $this->projetos = new ArrayCollection();
     }
 }
 

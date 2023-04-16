@@ -1,6 +1,6 @@
 <?php
 
-namespace Portfolio\Infra\Utils;
+namespace Portfolio\Infra\Types;
 
 enum StatusIdioma: string
 {
