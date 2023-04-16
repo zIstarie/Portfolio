@@ -10,11 +10,11 @@ cd backend/
 cp .env.example .env
 ```
 
-Add variables:
-*DB_DRIVER* -> PHP Driver for specific DBMS
-*DB_USER* -> Your database username
-*DB_PASS* -> Database Password (null by default)
-*DB_NAME* -> The name of your database
+Add variables:<br>
+*DB_DRIVER* -> PHP Driver for specific DBMS<br>
+*DB_USER* -> Your database username<br>
+*DB_PASS* -> Database Password (null by default)<br>
+*DB_NAME* -> The name of your database<br>
 
 Run:
 ```bash
