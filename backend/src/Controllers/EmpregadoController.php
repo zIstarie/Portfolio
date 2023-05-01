@@ -3,13 +3,16 @@
 namespace Portfolio\Src\Controllers;
 
 use Doctrine\ORM\EntityManager;
-use Exception;
 use Portfolio\Config\EntityManager as ConfigEntityManager;
 use Portfolio\Infra\Entities\Empregado;
 use Portfolio\Src\Strategies\ApiController;
+use Portfolio\Src\Traits\HTTPResponse;
+use Exception;
 
 class EmpregadoController implements ApiController
 {
+    use HTTPResponse;
+
     private EntityManager $entityManager;
 
     public function __construct()
@@ -70,24 +73,18 @@ class EmpregadoController implements ApiController
             if ($empregado) {
                 $this->entityManager->remove($empregado);
                 $this->entityManager->flush();
+            } else {
+                $this->send('No entity "Empregado" found with id: ' . $id, 404);
             }
 
-            http_response_code(200);
-            return json_encode([
-                'message' => 'Entity ' . $id . ' successfully removed from the database',
-                'status' => http_response_code()
-            ]);
+            $this->send('Entity ' . $id . ' successfully removed from the database', 200);
         } catch (Exception $e) {
             $logFile = fopen('../../logs/' . date('Y-m-d H:i:s') . '-log.txt', 'w');
             $content = "Erro ao persistir remoção de entidade 'Empregado' de id: '$id' na base de dados. Mensagem de erro: {$e->getMessage()}";
             fwrite($logFile, $content);
             fclose($logFile);
 
-            http_response_code(500);
-            return json_encode([
-                'message' => 'Failed trying to remove entity from the database',
-                'status' => http_response_code()
-            ]);
+            $this->send('Failed trying to remove entity from the database', 500);
         }
     }
 }
