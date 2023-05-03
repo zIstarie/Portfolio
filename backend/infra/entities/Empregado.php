@@ -71,6 +71,11 @@ class Empregado
         $this->nome = $nome;
     }
 
+    public function getToken(): int
+    {
+        return $this->token;
+    }
+
     private function setIdade(int $idade): Empregado
     {
         if ($idade < 18) throw new InvalidArgumentException('Você não tem idade o suficiente para trabalhar');
