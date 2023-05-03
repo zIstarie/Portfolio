@@ -3,6 +3,7 @@
 namespace Portfolio\Src\Controllers;
 
 use Doctrine\ORM\EntityManager;
+use Portfolio\Config\Cloudinary;
 use Portfolio\Config\EntityManager as ConfigEntityManager;
 use Portfolio\Infra\Entities\Empregado;
 use Portfolio\Src\Strategies\ApiController;
@@ -31,20 +32,25 @@ class EmpregadoController implements ApiController
                 ->getRepository(Empregado::class)
                 ->findAll();
     
-            $this->response($empregados);
+            return $this->response($empregados);
         } catch (Exception $e) {
             $this->registerLogFile('Erro ao tentar recuperar dados da entidade "Empregado" no banco de dados', $e);
-            $this->send('Failed to retrieve database registers related to "Empregado" entity', 500);
+            return $this->send('Failed to retrieve database registers related to "Empregado" entity', 500);
         }
     }
 
-    public function store(array|object $data): void
+    public function store(array|object $data, array $files): string
     {
         try {
-            if (!$this->validate((array) $data)) return;
+            if (!$this->validate((array) $data)) return $this->send('Incoming data format cannot be processed by the server', 400);
             
             $data = (object) $data;
             $data->token = $this->hashString($this->randomString());
+
+            $cloudinary = new Cloudinary();
+            $data->urlImagem = $cloudinary->uploadFile($files['url-imagem']);
+
+            if (gettype($data->urlImagem) === 'boolean') return $this->send('Image not suitable for supporting types', 415);
     
             $empregado = new Empregado($data->nome);
             $empregado->create($data);
@@ -54,10 +60,10 @@ class EmpregadoController implements ApiController
             $lastEmployee = $this->entityManager
                 ->find(Empregado::class, $empregado->getToken());
 
-            $this->response($lastEmployee, 201);
+            return $this->response($lastEmployee, 201);
         } catch (Exception $e) {
             $this->registerLogFile('Erro ao inserir dados de novo Empregado no banco', $e);
-            $this->send('Error trying to persist Entity in the database', 500);
+            return $this->send('Error trying to persist Entity in the database', 500);
         }
     }
 
@@ -76,26 +82,38 @@ class EmpregadoController implements ApiController
         return true;
     }
 
-    public function update(int $id, array $data)
-    {
-        
-    }
-
-    public function destroy(int $id)
+    public function update(int|string $token, array $data): string
     {
         try {
-            $empregado = $this->entityManager->find(Empregado::class, $id);
+            if (empty($data)) return $this->send('Incoming data values are empty', 400);
+
+            $empregado = $this->entityManager->find(Empregado::class, (string) $token);
+            $empregado->update($data);
+
+            $empregado->flush();
+
+            return $this->response($empregado);
+        } catch (Exception $e) {
+            $this->registerLogFile("Erro ao atualizar entidade 'Empregado' de token: '$token' no banco de dados", $e);
+            return $this->send('Failed to update the entity registers on the database', 500);
+        }
+    }
+
+    public function destroy(int|string $token): string
+    {
+        try {
+            $empregado = $this->entityManager->find(Empregado::class, $token);
             if ($empregado) {
                 $this->entityManager->remove($empregado);
                 $this->entityManager->flush();
             } else {
-                $this->send('No entity "Empregado" found with id: ' . $id, 404);
+                return $this->send('No entity "Empregado" found with token: ' . $token, 404);
             }
 
-            $this->send('Entity ' . $id . ' successfully removed from the database', 200);
+            return $this->send('Entity ' . $token . ' successfully removed from the database', 200);
         } catch (Exception $e) {
-            $this->registerLogFile("Erro ao persistir remoção de entidade 'Empregado' de id: '$id' na base de dados", $e);
-            $this->send('Failed to remove entity from the database', 500);
+            $this->registerLogFile("Erro ao persistir remoção de entidade 'Empregado' com token: '$token' na base de dados", $e);
+            return $this->send('Failed to remove entity from the database', 500);
         }
     }
 }

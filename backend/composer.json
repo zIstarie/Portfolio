@@ -3,6 +3,7 @@
     "autoload": {
         "psr-4": {
             "Portfolio\\Src\\": "src/",
+            "Portfolio\\Src\\Traits\\": "src/Traits/",
             "Portfolio\\Config\\": "config/",
             "Portfolio\\Infra\\": "infra/"
         }

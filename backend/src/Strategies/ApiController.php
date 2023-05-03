@@ -8,11 +8,11 @@ interface ApiController
     public function retrieve(array $options = null);
 
     // Middleware? Armazenar em um objeto, DTO?
-    public function store(array|object $data);
+    public function store(array|object $data, mixed ...$options);
 
-    public function update(int $id, array $data);
+    public function update(int|string $id, array $data);
 
-    public function destroy(int $id);
+    public function destroy(int|string $id);
 }
 
 ?>

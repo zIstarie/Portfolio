@@ -143,6 +143,16 @@ class Empregado
         $data->descricao && $this->setDescricao($data->descricao);
     }
 
+    public function update(object $data): void
+    {
+        $this->setIdade($data->idade ?? $this->idade)
+            ->setArea($data->area ?? $this->area)
+            ->setLinks($data->links ?? $this->links)
+            ->setUrlImage($data->urlImage ?? $this->urlImagem)
+            ->setContatos($data->contatos ?? $this->contatos)
+            ->setDescricao($data->descricao ?? $this->descricao);
+    }
+
     public static function retrieveIndexes(): array
     {
         return [
