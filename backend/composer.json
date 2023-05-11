@@ -4,8 +4,10 @@
         "psr-4": {
             "Portfolio\\Src\\": "src/",
             "Portfolio\\Src\\Traits\\": "src/Traits/",
+            "Portfolio\\Src\\Controllers\\": "src/Controllers/",
             "Portfolio\\Config\\": "config/",
-            "Portfolio\\Infra\\": "infra/"
+            "Portfolio\\Infra\\": "infra/",
+            "Portfolio\\Infra\\Entities\\": "infra/entities/"
         }
     },
     "authors": [

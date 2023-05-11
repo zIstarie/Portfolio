@@ -2,17 +2,29 @@
 
 namespace Portfolio\Config;
 
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager as ORMEntityManager;
-
-require_once '../infra/bootstrap.php';
+use Doctrine\ORM\ORMSetup;
 
 class EntityManager
 {
-    private static ORMEntityManager $manager = $entityManager;
 
     public static function getEntityManager()
     {
-        return self::$manager;
+        define('ENV', Dotenv::config());
+
+        $paths = [__DIR__ . '/entities'];
+        $dbParams = [
+            'driver' => ENV['DB_DRIVER'],
+            'user' => ENV['DB_USER'],
+            'password' => ENV['DB_PASS'],
+            'dbname' => ENV['DB_NAME']
+        ];
+
+        $config = ORMSetup::createAttributeMetadataConfiguration($paths, false);
+        $connection = DriverManager::getConnection($dbParams, $config);
+
+        return new ORMEntityManager($connection, $config);
     }    
 }
 

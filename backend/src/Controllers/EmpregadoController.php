@@ -2,6 +2,8 @@
 
 namespace Portfolio\Src\Controllers;
 
+require __DIR__ . '/../lib/Validation.php';
+
 use Doctrine\ORM\EntityManager;
 use Portfolio\Config\Cloudinary;
 use Portfolio\Config\EntityManager as ConfigEntityManager;
@@ -31,6 +33,10 @@ class EmpregadoController implements ApiController
             $empregados = $this->entityManager
                 ->getRepository(Empregado::class)
                 ->findAll();
+
+            foreach ($empregados as $key => $empregado) {
+                $empregados[$key] = $empregado->toString();
+            }
     
             return $this->response($empregados);
         } catch (Exception $e) {
@@ -39,16 +45,16 @@ class EmpregadoController implements ApiController
         }
     }
 
-    public function store(array|object $data, array $files): string
+    public function store(array|object $data, mixed ...$options)
     {
         try {
-            if (!$this->validate((array) $data)) return $this->send('Incoming data format cannot be processed by the server', 400);
+            if (!validate((array) $data, Empregado::class)) return $this->send('Incoming data format cannot be processed by the server', 400);
             
             $data = (object) $data;
-            $data->token = $this->hashString($this->randomString());
+            $data->token = str_replace('/', '', $this->hashString($this->randomString()));
 
             $cloudinary = new Cloudinary();
-            $data->urlImagem = $cloudinary->uploadFile($files['url-imagem']);
+            $data->urlImagem = $cloudinary->uploadFile($options[0]);
 
             if (gettype($data->urlImagem) === 'boolean') return $this->send('Image not suitable for supporting types', 415);
     
@@ -60,46 +66,39 @@ class EmpregadoController implements ApiController
             $lastEmployee = $this->entityManager
                 ->find(Empregado::class, $empregado->getToken());
 
-            return $this->response($lastEmployee, 201);
+            return $this->response($lastEmployee->toString(), 201);
         } catch (Exception $e) {
             $this->registerLogFile('Erro ao inserir dados de novo Empregado no banco', $e);
             return $this->send('Error trying to persist Entity in the database', 500);
         }
     }
 
-    private function validate(array $data): bool
-    {
-        $indexes = Empregado::retrieveIndexes();
-        $keys = array_keys($data);
-
-        foreach ($indexes as $index) {
-            if (
-                !array_key_exists($index, $keys) AND
-                isset($indexes[$index])
-            ) return false;
-        }
-
-        return true;
-    }
-
-    public function update(int|string $token, array $data): string
+    public function update(int|string $token, array $data)
     {
         try {
-            if (empty($data)) return $this->send('Incoming data values are empty', 400);
+            if (empty($data)) return $this->send('Incoming data values cannot be empty', 400);
 
             $empregado = $this->entityManager->find(Empregado::class, (string) $token);
-            $empregado->update($data);
 
-            $empregado->flush();
+            if ($data['url-imagem']) {
+                $data['url-imagem']['full_path'] = __DIR__ . '/../../public/assets/' . $data['url-imagem']['name'];
+                $cloudinary = new Cloudinary();
+                $data['urlImagem'] = $cloudinary->uploadFile($data['url-imagem']);
+            }
 
-            return $this->response($empregado);
+            $empregado->update((object) $data);
+
+            $this->entityManager->persist($empregado);
+            $this->entityManager->flush();
+
+            return $this->response($empregado->toString());
         } catch (Exception $e) {
             $this->registerLogFile("Erro ao atualizar entidade 'Empregado' de token: '$token' no banco de dados", $e);
             return $this->send('Failed to update the entity registers on the database', 500);
         }
     }
 
-    public function destroy(int|string $token): string
+    public function destroy(int|string $token)
     {
         try {
             $empregado = $this->entityManager->find(Empregado::class, $token);

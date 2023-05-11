@@ -9,16 +9,16 @@ class Cloudinary
 {
     use Encrypt;
 
-    private static const DOTENV = Dotenv::config();
-
     public static function getCongiguration(): CloudinaryConfig
     {
+        define('DOTENV', Dotenv::config());
+
         return new CloudinaryConfig(
             [
                 'cloud' => [
-                    'cloud_name' => self::DOTENV['CLOUD_NAME'],
-                    'api_key' => self::DOTENV['CLOUD_KEY'],
-                    'api_secret' => self::DOTENV['CLOUD_SECRET']
+                    'cloud_name' => DOTENV['CLOUD_NAME'],
+                    'api_key' => DOTENV['CLOUD_KEY'],
+                    'api_secret' => DOTENV['CLOUD_SECRET']
                 ]
             ]
         );
@@ -26,11 +26,11 @@ class Cloudinary
 
     public function uploadFile(array $file): bool|string
     {
-        if ($file['type'] !== 'image/png' || $file['type'] !== 'image/jpeg') return false;
+        if ($file['type'] !== 'image/png' && $file['type'] !== 'image/jpeg') return false;
 
         $publicId = $this->hashString($file['name']);
 
-        $cloudinary = self::getCongiguration();
+        $cloudinary = $this->getCongiguration();
         $cloudinary->uploadApi()->upload(
             $file['full_path'],
             ['public_id' => $publicId]

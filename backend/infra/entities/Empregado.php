@@ -14,11 +14,11 @@ use InvalidArgumentException;
 
 #[Entity]
 #[Table(name: 'empregados')]
-class Empregado
+class Empregado extends BaseEntity
 {
     #[Id]
     #[Column(type: Types::TEXT)]
-    private int $token;
+    private string $token;
 
     #[Column(type: Types::STRING, length: 120)]
     private string $nome;
@@ -71,9 +71,24 @@ class Empregado
         $this->nome = $nome;
     }
 
-    public function getToken(): int
+    public function getToken(): string
     {
         return $this->token;
+    }
+
+    private function setToken(string $token)
+    {
+        $this->token = $token;
+
+        return $this;
+    }
+
+    private function setNome(string $nome)
+    {
+        if (strlen($nome) > 120) throw new InvalidArgumentException('Nome informado atingiu o limite máximo de caracteres');
+
+        $this->nome = $nome;
+        return $this;
     }
 
     private function setIdade(int $idade): Empregado
@@ -134,7 +149,8 @@ class Empregado
 
     public function create(object $data): void
     {
-        $this->setIdade($data->idade)
+        $this->setToken($data->token)
+            ->setIdade($data->idade)
             ->setArea($data->area)
             ->setLinks($data->links)
             ->setUrlImage($data->urlImagem);
@@ -145,12 +161,13 @@ class Empregado
 
     public function update(object $data): void
     {
-        $this->setIdade($data->idade ?? $this->idade)
+        $this->setNome($data->nome ?? $this->nome)
+            ->setIdade($data->idade ?? $this->idade)
             ->setArea($data->area ?? $this->area)
             ->setLinks($data->links ?? $this->links)
-            ->setUrlImage($data->urlImage ?? $this->urlImagem)
-            ->setContatos($data->contatos ?? $this->contatos)
-            ->setDescricao($data->descricao ?? $this->descricao);
+            ->setUrlImage($data->urlImagem ?? $this->urlImagem)
+            ->setContatos($data->contatos ?? (array) $this->contatos)
+            ->setDescricao($data->descricao ?? (string) $this->descricao);
     }
 
     public static function retrieveIndexes(): array
@@ -164,6 +181,22 @@ class Empregado
             'contatos' => null,
             'descricao' => null,
         ];
+    }
+
+    public function toString(): object
+    {
+        $empregado = new \stdClass();
+
+        $empregado->token = $this->token;
+        $empregado->nome = $this->nome;
+        $empregado->idade = $this->idade;
+        $empregado->area = $this->area;
+        $empregado->links = $this->links;
+        $empregado->urlImagem = $this->urlImagem;
+        $empregado->contatos = $this->contatos ?? [];
+        $empregado->descricao = $this->descricao ?? '';
+
+        return $empregado;
     }
 }
 
