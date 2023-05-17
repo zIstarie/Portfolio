@@ -14,6 +14,7 @@ use Portfolio\Infra\Entities\Empregado;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Exception;
+use stdClass;
 
 #[Entity]
 #[Table(name: 'idiomas')]
@@ -28,9 +29,9 @@ class Idioma extends BaseEntity
     private string $nome;
 
     #[Column(type: Types::STRING)]
-    private StatusIdioma $status;
+    private string $status;
 
-    #[Column(type: Types::TEXT, nullable: true)]
+    #[Column(name: 'empregados_token', type: Types::TEXT, nullable: true)]
     #[ManyToOne(targetEntity: Empregado::class, inversedBy: 'idiomas')]
     #[JoinColumn(name: 'empregados_token', referencedColumnName: 'token')]
     private ?string $empregadosToken = null;
@@ -58,21 +59,47 @@ class Idioma extends BaseEntity
 
     private function setStatus(string $status)
     {
-        $status = StatusIdioma::tryFrom($status);
+        $confirmStatus = StatusIdioma::tryFrom($status);
 
-        if ($status) $this->status = $status;
+        if ($confirmStatus) $this->status = $status;
+        return $this;
+    }
+
+    private function setEmpregadosToken(string $token)
+    {
+        $this->empregadosToken = $token;
         return $this;
     }
 
     public function create(object $data): void
     {
+        if (
+            isset($data->empregado) AND
+            !($data->empregado instanceof Empregado)
+        ) return;
+
         $this->setStatus($data->status);
+
+        isset($data->empregado) && $this->setEmpregadosToken($data->empregado);
     }
 
     public function update(object $data): void
     {
-        $this->setNome($data->nome OR $this->nome)
-            ->setStatus($data->status OR $this->status);
+        $this->setNome($data->nome ?? $this->nome)
+            ->setStatus($data->status ?? $this->status)
+            ->setEmpregadosToken($data->empregadosToken ?? $this->empregadosToken);
+    }
+
+    public function toString()
+    {
+        $idioma = new stdClass();
+
+        $idioma->id = $this->id;
+        $idioma->nome = $this->nome;
+        $idioma->status = $this->status;
+        $idioma->empregadosToken = $this->empregadosToken;
+
+        return $idioma;
     }
 
     public static function retrieveIndexes(): array

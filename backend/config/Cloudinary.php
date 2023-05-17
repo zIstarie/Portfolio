@@ -3,11 +3,14 @@
 namespace Portfolio\Config;
 
 use Cloudinary\Cloudinary as CloudinaryConfig;
+use Exception;
 use Portfolio\Src\Traits\Encrypt;
+use Portfolio\Src\Traits\LogRegister;
 
 class Cloudinary
 {
     use Encrypt;
+    use LogRegister;
 
     public static function getCongiguration(): CloudinaryConfig
     {
@@ -26,17 +29,22 @@ class Cloudinary
 
     public function uploadFile(array $file): bool|string
     {
-        if ($file['type'] !== 'image/png' && $file['type'] !== 'image/jpeg') return false;
-
-        $publicId = $this->hashString($file['name']);
-
-        $cloudinary = $this->getCongiguration();
-        $cloudinary->uploadApi()->upload(
-            $file['full_path'],
-            ['public_id' => $publicId]
-        );
-
-        return $cloudinary->image($publicId)->toUrl();
+        try {
+            if ($file['type'] !== 'image/png' && $file['type'] !== 'image/jpeg') return false;
+    
+            $publicId = $this->hashString($file['name']);
+    
+            $cloudinary = $this->getCongiguration();
+            $cloudinary->uploadApi()->upload(
+                $file['full_path'],
+                ['public_id' => $publicId]
+            );
+    
+            return $cloudinary->image($publicId)->toUrl();
+        } catch (Exception $e) {
+            $this->registerLogFile('Erro ao fazer upload de imagem na Cloudinary', $e);
+            return false;
+        }
     }
 }
 

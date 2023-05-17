@@ -2,7 +2,7 @@
 
 namespace Portfolio\Src\Controllers;
 
-require 'src/lib/Validation.php';
+require __DIR__ . '/../lib/Validation.php';
 
 use Doctrine\ORM\EntityManager;
 use Portfolio\Infra\Entities\Idioma;
@@ -10,6 +10,7 @@ use Portfolio\Src\Strategies\ApiController;
 use Portfolio\Config\EntityManager as ConfigEntityManager;
 use Portfolio\Src\Traits\HTTPResponse;
 use Portfolio\Src\Traits\LogRegister;
+use Portfolio\Infra\Entities\Empregado;
 use Exception;
 
 class IdiomaController implements ApiController
@@ -30,8 +31,12 @@ class IdiomaController implements ApiController
             $idiomas = $this->entityManager
                 ->getRepository(Idioma::class)
                 ->findAll();
+            
+            foreach ($idiomas as $key => $idioma) {
+                $idiomas[$key] = $idioma->toString();
+            }
 
-            return $this->response($idiomas);        
+            return $this->response($idiomas);
         } catch (Exception $e) {
             $this->registerLogFile('Erro ao recuperar dados do Repositório da Entidade "Idioma" no banco de dados', $e);
             return $this->send('Failed to retrieve data from "Idioma" Entity on the database', 500);
@@ -52,7 +57,7 @@ class IdiomaController implements ApiController
 
             $lastInserted = $this->entityManager->find(Idioma::class, $idioma->getId());
 
-            return $this->response($lastInserted);
+            return $this->response($lastInserted->toString());
         } catch (Exception $e) {
             $this->registerLogFile('Falha ao inserir registros da Entidade "Idioma" no banco de dados', $e);
             $this->send('Failed to insert new record on database table related to Entity: "Idioma"', 500);
@@ -71,7 +76,7 @@ class IdiomaController implements ApiController
             $this->entityManager->persist($idioma);
             $this->entityManager->flush();
 
-            return $this->response($idioma);
+            return $this->response($idioma->toString());
         } catch (Exception $e) {
             $this->registerLogFile("Erro ao tentar atualizar dados da Entidade 'Idoma' de id '$id' no banco de dados", $e);
             $this->send("Failed to update data related to Entity 'Idioma' with id '$id' in the database", 500);
